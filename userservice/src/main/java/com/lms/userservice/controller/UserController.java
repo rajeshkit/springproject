@@ -3,34 +3,49 @@ package com.lms.userservice.controller;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import com.lms.userservice.entity.User;
-import com.netflix.discovery.converters.Auto;
+import com.lms.userservice.entity.Users;
+import com.lms.userservice.service.UserService;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.Optional;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.ResponseEntity;
 
 
 
 @RestController
+@RequestMapping("/api/users")
 public class UserController {
+
     @Autowired
-    RestTemplate restTemplate;
+    private UserService userService;
 
-
-    @PostMapping("/user")
-    public User postMethodName(@RequestBody User user) {
-       return user;
+    @GetMapping
+    public List<Users> getAllUsers() {
+        return userService.getAllUsers();
     }
-    @GetMapping("/user/books")
-    public String getMethodName() {
-        //here i need ti talk to a bookservice
-        restTemplate.getForEntity("http://localhost:9090/books",BookResponse.class);
-        return null;
-    }
-    
-    
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Users> getUserById(@PathVariable int id) {
+        Optional<Users> user = userService.getUserById(id);
+        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public Users createUser(@RequestBody Users user) {
+        return userService.createUser(user);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable int id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
 }
